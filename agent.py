@@ -31,10 +31,7 @@ class DQN(nn.Module):
     # Called with either one element to determine next action, or a batch
     # during optimization. Returns tensor([[left0exp,right0exp]...]).
     def forward(self, x):
-        try:
-            x = F.relu(self.bn1(self.conv1(x)))
-        except:
-            print(x.shape)
+        x = F.relu(self.bn1(self.conv1(x)))
         #print(x.shape,"hej")
         x = F.relu(self.bn2(self.conv2(x)))
         #print(x.shape)
@@ -85,7 +82,6 @@ class newai(object):
         state_batch = torch.stack(batch.state)
         action_batch = torch.cat(batch.action)
         reward_batch = torch.cat(batch.reward)
-        print(state_batch)
         # Compute Q(s_t, a) - the model computes Q(s_t), then we select the
         # columns of actions taken. These are the actions which would've been taken
         # for each batch state according to policy_net
@@ -117,11 +113,8 @@ class newai(object):
         sample = random.random()
         if sample > epsilon:
             with torch.no_grad():
-                #GETS NO action if best action is supposed to be selected
-                #Results in crash
-                print(torch.stack(torch.from_numpy(state)))
-                state = torch.from_numpy(state)
-                #Expects a batch of states while we feed one state
+                #Have to convert to a batch of one state!
+                state = torch.from_numpy(state).float().unsqueeze(0)
                 q_values = self.policy_net(state)
                 return torch.argmax(q_values).item()
         else:
@@ -137,7 +130,12 @@ class newai(object):
         state = torch.from_numpy(state).float()
         self.memory.push(state, action, next_state, reward, done)
 
+    def load_model(self,fpath):
+        #Pass filename as argument to load desired model
+        return torch.load(fpath)
 
+    def get_name(self):
+        return self.name
 
     #https://becominghuman.ai/lets-build-an-atari-ai-part-1-dqn-df57e8ff3b26
     def _preprocess(self, observation):
@@ -158,3 +156,4 @@ class newai(object):
 
     def _stack_frames(self, stack_ob, obs):
         return np.concatenate((stack_ob, obs), axis=0)
+
