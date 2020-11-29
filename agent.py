@@ -44,8 +44,9 @@ class DQN(nn.Module):
 class newai(object):
     def __init__(self):
         self.train_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.policy_net = DQN(100,100,3)
-        self.target_net = DQN(100,100,3)
+        print("train_device is:",self.train_device)
+        self.policy_net = DQN(100,100,3).to(device=self.train_device)
+        self.target_net = DQN(100,100,3).to(device=self.train_device)
         self.target_net.load_state_dict(self.policy_net.state_dict())
         self.target_net.eval()
         self.optimizer = optim.RMSprop(self.policy_net.parameters(), lr=1e-3)
@@ -74,14 +75,14 @@ class newai(object):
 
         # Compute a mask of non-final states and concatenate the batch elements
         # (a final state would've been the one after which simulation ended)
-        non_final_mask = 1-torch.tensor(batch.done, dtype=torch.uint8)
+        non_final_mask = 1-torch.tensor(batch.done, dtype=torch.uint8,device=self.train_device)
         non_final_mask = non_final_mask.type(torch.bool)
         non_final_next_states = [s for nonfinal,s in zip(non_final_mask,
                                                          batch.next_state) if nonfinal > 0]
-        non_final_next_states = torch.stack(non_final_next_states)
-        state_batch = torch.stack(batch.state)
-        action_batch = torch.cat(batch.action)
-        reward_batch = torch.cat(batch.reward)
+        non_final_next_states = torch.stack(non_final_next_states).to(device=self.train_device)
+        state_batch = torch.stack(batch.state).to(device=self.train_device)
+        action_batch = torch.cat(batch.action).to(device=self.train_device)
+        reward_batch = torch.cat(batch.reward).to(device=self.train_device)
         # Compute Q(s_t, a) - the model computes Q(s_t), then we select the
         # columns of actions taken. These are the actions which would've been taken
         # for each batch state according to policy_net
@@ -92,8 +93,8 @@ class newai(object):
         # on the "older" target_net; selecting their best reward with max(1)[0].
         # This is merged based on the mask, such that we'll have either the expected
         # state value or 0 in case the state was final.
-        next_state_values = torch.zeros(self.batch_size)
-        next_state_values[non_final_mask] = self.target_net(non_final_next_states).max(1)[0].detach()
+        next_state_values = torch.zeros(self.batch_size).to(device=self.train_device)
+        next_state_values[non_final_mask] = self.target_net(non_final_next_states).max(1)[0].detach().to(device=self.train_device)
 
         # Task 4: TODO: Compute the expected Q values
         expected_state_action_values = reward_batch + self.gamma * next_state_values
@@ -114,7 +115,7 @@ class newai(object):
         if sample > epsilon:
             with torch.no_grad():
                 #Have to convert to a batch of one state!
-                state = torch.from_numpy(state).float().unsqueeze(0)
+                state = torch.from_numpy(state).float().unsqueeze(0).to(device=self.train_device)
                 q_values = self.policy_net(state)
                 return torch.argmax(q_values).item()
         else:

@@ -11,7 +11,14 @@ import argparse
 import random
 from agent import newai as DQNAgent
 
-#args = parser.parse_args()
+parser = argparse.ArgumentParser()
+parser.add_argument("--load", action="store_true",
+                    help="Load weights from file")
+parser.add_argument("--file", type=str, default=None,
+                    help="Name of the file that contains the weights")
+parser.add_argument("--render", action="store_true",
+                    help="render")
+args = parser.parse_args()
 
 # set up logging
 logging.basicConfig(level=logging.INFO, filename='dqn.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
@@ -20,11 +27,11 @@ logging.info("log file for DQN agent training")
 # Make the environment
 env = gym.make("WimblepongVisualSimpleAI-v0")
 
-TARGET_UPDATE = 20
+TARGET_UPDATE = 30
 glie_a = 5000
-num_episodes = 15000
+num_episodes = 50000
 hidden = 64
-gamma = 0.95
+gamma = 0.99
 replay_buffer_size = 50000
 batch_size = 32
 
@@ -38,7 +45,8 @@ wins = 0
 
 # Task 4 - DQN
 agent = DQNAgent()
-
+if args.load:
+    agent.policy_net.load_state_dict(agent.load_model(args.file))
 
 # Training loop
 #FROM EXERCISE 4
@@ -51,11 +59,15 @@ for ep in range(num_episodes):
     state = agent._preprocess(state)
 
     done = False
-    eps = glie_a/(glie_a+ep)
+    if ep < 25000:
+    	eps = 0.01
+    else:
+    	eps = 0.01
     cum_reward = 0
 
     i = 0
-    #env.render()
+    if args.render:
+        env.render()
     while not done:
         # Select and perform an action
         action = agent.get_action(state, eps)
@@ -69,7 +81,8 @@ for ep in range(num_episodes):
 
         # Move to the next state
         state = next_state
-        #env.render()
+        if args.render:
+            env.render()
         if done:
             # EMPTY memory
             #agent.history.empty()
@@ -81,7 +94,7 @@ for ep in range(num_episodes):
     #plot_rewards(cumulative_rewards)
     logging.info("Episode lasted for %i time steps", i)
 
-    """
+
     # Update the target network, copying all weights and biases in DQN
     # Uncomment for Task 4
     if ep % TARGET_UPDATE == 0:
@@ -90,13 +103,12 @@ for ep in range(num_episodes):
     if ep % 10 == 0:
         logging.info("trained for: %s episodes", ep)
         logging.info("victory rate: %r", wins/(ep+1))
+        logging.info("Won total: %s",wins)
 
     # Save the policy
     # Uncomment for Task 4
     if ep % 1000 == 0:
         logging.info("saving model at ep: %s", ep)
-        torch.save(agent.policy_net.state_dict(), "weights_%s_%d.mdl" % ("DQN", ep))
-    """
+        torch.save(agent.policy_net.state_dict(), "weights_%s_%d_new.mdl" % ("DQN", ep))
 
 print('Complete')
-
