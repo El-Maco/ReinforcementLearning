@@ -82,7 +82,7 @@ for ep in range(num_episodes):
 
     done = False
     if ep < 25000:
-    	eps = 0.01
+    	eps = glie_a/(glie_a+ep)
     else:
     	eps = 0.01
     cum_reward = 0
