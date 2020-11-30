@@ -42,22 +42,21 @@ class DQN(nn.Module):
 
 #Agent from exercise 4
 class newai(object):
-    def __init__(self):
+    def __init__(self, h, w, n_actions, frame_stacks, gamma, batch_size, replay_buffer_size):
         self.train_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print("train_device is:",self.train_device)
-        self.policy_net = DQN(100,100,3).to(device=self.train_device)
-        self.target_net = DQN(100,100,3).to(device=self.train_device)
+        self.policy_net = DQN(h,w,n_actions).to(device=self.train_device)
+        self.target_net = DQN(h,w,n_actions).to(device=self.train_device)
         self.target_net.load_state_dict(self.policy_net.state_dict())
         self.target_net.eval()
         self.optimizer = optim.RMSprop(self.policy_net.parameters(), lr=1e-3)
-        self.gamma = 0.98
+        self.gamma = gamma
         self.states = []
-        self.memory = ReplayMemory(50000)
-        self.batch_size = 32
-        self.gamma = 0.98
+        self.memory = ReplayMemory(replay_buffer_size)
+        self.batch_size = batch_size
         self.prev_obs = None
-        self.n_actions = 3
-        self.frame_stacks = 2
+        self.n_actions = n_actions
+        self.frame_stacks = frame_stacks
         self.agent_name = "TODO"
 
     def update_network(self, updates=1):

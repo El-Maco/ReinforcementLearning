@@ -25,26 +25,45 @@ logging.basicConfig(level=logging.INFO, filename='dqn.log', filemode='w', format
 logging.info("log file for DQN agent training")
 
 # Make the environment
-env = gym.make("WimblepongVisualSimpleAI-v0")
+# env_name = "WimblepongVisualSimpleAI-v0"
+env_name = "CartPole-v0"
+env = gym.make(env_name)
 
-TARGET_UPDATE = 30
-glie_a = 5000
-num_episodes = 50000
-hidden = 64
-gamma = 0.99
-replay_buffer_size = 50000
-batch_size = 32
+if "CartPole" in env_name:
+    TARGET_UPDATE = 50
+    glie_a = 500
+    num_episodes = 2000
+    hidden = 12
+    gamma = 0.95
+    replay_buffer_size = 500000
+    batch_size = 256
+    frame_stacks = 2
+    height = 400
+    width = 600
+elif "WimblepongVisualSimpleAI" in env_name:
+    TARGET_UPDATE = 30
+    glie_a = 5000
+    num_episodes = 50000
+    hidden = 64
+    gamma = 0.99
+    replay_buffer_size = 50000
+    batch_size = 32
+    frame_stacks = 2
+    height = 100
+    width = 100
+else:
+    raise ValueError("Please provide hyperparameters for %s" % env_name)
 
 
 wins = 0
 
 # Get number of actions from gym action space
-#n_actions = env.action_space.n
-#state_space_dim = env.observation_space.shape
+n_actions = env.action_space.n
+state_space_dim = env.observation_space.shape
 
 
 # Task 4 - DQN
-agent = DQNAgent()
+agent = DQNAgent(height, width, n_actions, frame_stacks, gamma, batch_size, replay_buffer_size)
 if args.load:
     agent.policy_net.load_state_dict(agent.load_model(args.file))
 
@@ -56,6 +75,9 @@ for ep in range(num_episodes):
     state = env.reset()
 
     # PRE PROCESS THE STATE
+    if "CartPole" in env_name:
+        state = env.render(mode='rgb_array')
+        env.close()
     state = agent._preprocess(state)
 
     done = False
