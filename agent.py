@@ -7,26 +7,37 @@ import numpy as np
 import random
 from utilis import Transition, ReplayMemory
 
-#https://pytorch.org/tutorials/intermediate/reinforcement_q_learning.html
+# https://pytorch.org/tutorials/intermediate/reinforcement_q_learning.html This was bad
+# This is good: https://ai.stackexchange.com/questions/10203/dqn-stuck-at-suboptimal-policy-in-atari-pong-task
 class DQN(nn.Module):
 
     def __init__(self, h, w, outputs):
         super(DQN, self).__init__()
-        self.conv1 = nn.Conv2d(2, 16, kernel_size=5, stride=2)
-        self.bn1 = nn.BatchNorm2d(16)
-        self.conv2 = nn.Conv2d(16, 32, kernel_size=5, stride=2)
-        self.bn2 = nn.BatchNorm2d(32)
-        self.conv3 = nn.Conv2d(32, 32, kernel_size=5, stride=2)
-        self.bn3 = nn.BatchNorm2d(32)
+        self.action_space = 3
+        self.hidden = 512
+
+        self.conv1 = torch.nn.Conv2d(in_channels=3,
+                                     out_channels=32,
+                                     kernel_size=8,
+                                     stride=4)
+        self.conv2 = torch.nn.Conv2d(32, 64, 4, 2)
+        self.conv3 = torch.nn.Conv2d(64, 64, 3, 1)
+        self.reshaped_size = 64 * 9 * 9
+        self.fc1 = torch.nn.Linear(self.reshaped_size, self.hidden)
+        self.head = torch.nn.Linear(self.hidden, 3)
 
         # Number of Linear input connections depends on output of conv2d layers
         # and therefore the input image size, so compute it.
-        def conv2d_size_out(size, kernel_size = 5, stride = 2):
-            return (size - (kernel_size - 1) - 1) // stride  + 1
-        convw = conv2d_size_out(conv2d_size_out(conv2d_size_out(w)))
-        convh = conv2d_size_out(conv2d_size_out(conv2d_size_out(h)))
-        linear_input_size = convw * convh * 32
-        self.head = nn.Linear(linear_input_size, outputs)
+
+    # Called with either one element to determine next action, or a batch
+    # during optimization. Returns tensor([[left0exp,right0exp]...]).
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        x = F.relu(self.conv2(x))
+        x = F.relu(self.conv3(x))
+        x = x.reshape(x.shape[0], self.reshaped_size)
+        x = F.relu(self.fc1(x))
+        return self.head(x)
 
     # Called with either one element to determine next action, or a batch
     # during optimization. Returns tensor([[left0exp,right0exp]...]).
@@ -93,7 +104,12 @@ class newai(object):
         # This is merged based on the mask, such that we'll have either the expected
         # state value or 0 in case the state was final.
         next_state_values = torch.zeros(self.batch_size).to(device=self.train_device)
-        next_state_values[non_final_mask] = self.target_net(non_final_next_states).max(1)[0].detach().to(device=self.train_device)
+
+        # Double DQN, Vanilla did converge slow..
+        # https://github.com/Shivanshu-Gupta/Pytorch-Double-DQN/blob/master/agent.py
+        _, next_state_actions = self.policy_net(non_final_next_states).max(1, keepdim=True)
+        next_state_values[non_final_mask] = self.target_net(non_final_next_states).gather(1,
+                                                                                          next_state_actions).squeeze(1)
 
         # Task 4: TODO: Compute the expected Q values
         expected_state_action_values = reward_batch + self.gamma * next_state_values
