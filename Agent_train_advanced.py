@@ -56,6 +56,7 @@ env.set_names(agent.get_name(), opponent.get_name())
 # Training loop
 #FROM EXERCISE 4
 cumulative_rewards = []
+total_frames = 0
 for ep in range(num_episodes):
     # Initialize the environment and state
     state,state1 = env.reset()
@@ -94,6 +95,8 @@ for ep in range(num_episodes):
             #agent.history.empty()
             if rew1 > 9:
                 wins += 1
+        i += 1
+    total_frames += i
     cumulative_rewards.append(cum_reward)
     #plot_rewards(cumulative_rewards)
     logging.info("Episode lasted for %i time steps", i)
@@ -105,6 +108,7 @@ for ep in range(num_episodes):
         agent.update_target_network()
 
     if ep % 10 == 0:
+        logging.info("Mean frame rate: %r",total_frames/(ep+1))
         logging.info("trained for: %s episodes", ep)
         logging.info("victory rate: %r", wins/(ep+1))
 
