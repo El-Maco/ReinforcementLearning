@@ -73,14 +73,14 @@ class newai(object):
 
         # Compute a mask of non-final states and concatenate the batch elements
         # (a final state would've been the one after which simulation ended)
-        non_final_mask = 1-torch.tensor(batch.done, dtype=torch.uint8,device=self.train_device)
+        non_final_mask = 1-torch.tensor(batch.done, dtype=torch.uint8)
         non_final_mask = non_final_mask.type(torch.bool)
         non_final_next_states = [s for nonfinal,s in zip(non_final_mask,
-                                                         batch.next_state) if nonfinal > 0]
-        non_final_next_states = torch.stack(non_final_next_states).to(device=self.train_device)
-        state_batch = torch.stack(batch.state).to(device=self.train_device)
-        action_batch = torch.cat(batch.action).to(device=self.train_device)
-        reward_batch = torch.cat(batch.reward).to(device=self.train_device)
+                                         batch.next_state) if nonfinal > 0]
+        non_final_next_states = torch.stack(non_final_next_states).to(self.train_device)
+        state_batch = torch.stack(batch.state).to(self.train_device)
+        action_batch = torch.cat(batch.action).to(self.train_device)
+        reward_batch = torch.cat(batch.reward).to(self.train_device)
         # Compute Q(s_t, a) - the model computes Q(s_t), then we select the
         # columns of actions taken. These are the actions which would've been taken
         # for each batch state according to policy_net
