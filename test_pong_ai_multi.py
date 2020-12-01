@@ -14,7 +14,7 @@ from PIL import Image
 parser = argparse.ArgumentParser()
 parser.add_argument("--headless", action="store_true", help="Run in headless mode")
 parser.add_argument("--fps", type=int, help="FPS for rendering", default=30)
-parser.add_argument("--scale", type=int, help="Scale of the rendered game", default=1)
+parser.add_argument("--scale", type=int, help="Scale of the rendered game", default=3)
 args = parser.parse_args()
 
 # Make the environment

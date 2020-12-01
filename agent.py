@@ -11,12 +11,12 @@ from utilis import Transition, ReplayMemory
 # This is good: https://ai.stackexchange.com/questions/10203/dqn-stuck-at-suboptimal-policy-in-atari-pong-task
 class DQN(nn.Module):
 
-    def __init__(self, h, w, outputs):
+    def __init__(self, frame_stacks, outputs):
         super(DQN, self).__init__()
         self.action_space = 3
         self.hidden = 512
 
-        self.conv1 = torch.nn.Conv2d(in_channels=3,
+        self.conv1 = torch.nn.Conv2d(in_channels=frame_stacks,
                                      out_channels=32,
                                      kernel_size=8,
                                      stride=4)
@@ -24,7 +24,7 @@ class DQN(nn.Module):
         self.conv3 = torch.nn.Conv2d(64, 64, 3, 1)
         self.reshaped_size = 64 * 9 * 9
         self.fc1 = torch.nn.Linear(self.reshaped_size, self.hidden)
-        self.head = torch.nn.Linear(self.hidden, 3)
+        self.head = torch.nn.Linear(self.hidden, outputs)
 
         # Number of Linear input connections depends on output of conv2d layers
         # and therefore the input image size, so compute it.
@@ -39,25 +39,13 @@ class DQN(nn.Module):
         x = F.relu(self.fc1(x))
         return self.head(x)
 
-    # Called with either one element to determine next action, or a batch
-    # during optimization. Returns tensor([[left0exp,right0exp]...]).
-    def forward(self, x):
-        x = F.relu(self.bn1(self.conv1(x)))
-        #print(x.shape,"hej")
-        x = F.relu(self.bn2(self.conv2(x)))
-        #print(x.shape)
-        x = F.relu(self.bn3(self.conv3(x)))
-        #print(x.shape,"hej")
-        return self.head(x.view(x.size(0), -1))
-
-
 #Agent from exercise 4
 class newai(object):
-    def __init__(self, h, w, n_actions, frame_stacks, gamma, batch_size, replay_buffer_size):
+    def __init__(self, frame_stacks, n_actions, gamma, batch_size, replay_buffer_size):
         self.train_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print("train_device is:",self.train_device)
-        self.policy_net = DQN(h,w,n_actions).to(device=self.train_device)
-        self.target_net = DQN(h,w,n_actions).to(device=self.train_device)
+        self.policy_net = DQN(frame_stacks, n_actions).to(device=self.train_device)
+        self.target_net = DQN(frame_stacks, n_actions).to(device=self.train_device)
         self.target_net.load_state_dict(self.policy_net.state_dict())
         self.target_net.eval()
         self.optimizer = optim.RMSprop(self.policy_net.parameters(), lr=1e-3)
@@ -151,7 +139,7 @@ class newai(object):
         return torch.load(fpath)
 
     def get_name(self):
-        return self.name
+        return self.agent_name
 
     #https://becominghuman.ai/lets-build-an-atari-ai-part-1-dqn-df57e8ff3b26
     def _preprocess(self, observation):

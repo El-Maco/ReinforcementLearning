@@ -3,7 +3,7 @@ import random
 
 
 class SimpleAi(object):
-    def __init__(self, env, player_id=1):
+    def __init__(self, env, player_id=1, bpe=8):
         if type(env) is not Wimblepong:
             raise TypeError("I'm not a very smart AI. All I can play is Wimblepong.")
         self.env = env
@@ -11,7 +11,7 @@ class SimpleAi(object):
         self.player_id = player_id  
         # Ball prediction error, introduce noise such that SimpleAI reflects not
         # only in straight lines
-        self.bpe = 4                
+        self.bpe = bpe
         self.name = "SimpleAI"
 
     def get_name(self):

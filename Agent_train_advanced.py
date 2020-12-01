@@ -34,12 +34,13 @@ hidden = 64
 gamma = 0.99
 replay_buffer_size = 50000
 batch_size = 32
+frame_stacks = 3
 
 
 wins = 0
 
 # Get number of actions from gym action space
-#n_actions = env.action_space.n
+n_actions = env.action_space.n
 #state_space_dim = env.observation_space.shape
 
 player_id = 1
@@ -47,7 +48,7 @@ opponent_id = 3 - player_id
 opponent = wimblepong.SimpleAi(env, opponent_id,bpe = 8)
 
 # Task 4 - DQN
-agent = DQNAgent()
+agent = DQNAgent(frame_stacks, n_actions, gamma, batch_size, replay_buffer_size)
 if args.load:
     agent.policy_net.load_state_dict(agent.load_model(args.file))
 
@@ -62,8 +63,8 @@ for ep in range(num_episodes):
     state = agent._preprocess(state)
     done = False
     if ep < 25000:
-        #eps = glie_a/(glie_a+ep)
-        eps=0.05
+        eps = glie_a/(glie_a+ep)
+        # eps=0.05
     else:
         eps = 0.1
     cum_reward = 0
@@ -76,7 +77,7 @@ for ep in range(num_episodes):
 
         action = agent.get_action(state, eps)
         action2 = opponent.get_action()
-        (ob1, ob2), (rew1, rew2), done, info = env.step((action,action2))
+        (ob1, _), (rew1, _), done, info = env.step((action,action2))
         cum_reward += rew1
         next_state = agent._preprocess(ob1)
 
@@ -114,6 +115,6 @@ for ep in range(num_episodes):
         torch.save(agent.policy_net.state_dict(), "weights_%s_%d.mdl" % ("DQN", ep))
 
     if ep % 4000 == 0 and opponent.bpe > 2:
-        opponent = opponent = wimblepong.SimpleAi(env, opponent_id,opponent.bpe-1)
+        opponent = wimblepong.SimpleAi(env, opponent_id,opponent.bpe-1)
 
 print('Complete')
