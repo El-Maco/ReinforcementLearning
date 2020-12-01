@@ -27,7 +27,7 @@ logging.info("log file for DQN agent training")
 # Make the environment
 env = gym.make("WimblepongVisualMultiplayer-v0")
 
-TARGET_UPDATE = 30
+TARGET_UPDATE = 25
 glie_a = 5000
 num_episodes = 50000
 hidden = 64
