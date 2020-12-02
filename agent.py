@@ -147,6 +147,8 @@ class newai(object):
 
         observation = np.mean(observation, axis=2).astype(np.uint8)  # convert to greyscale
         observation = observation[::5, ::5] # Ball is 5 pixels -> quaranteed 1 pixel
+        observation = observation[::1, :-2]
+        observation = observation[::1, 2:]
         # observation = observation[2:-3, 2:-3] # Remove first 2 columns and Right 3 columns
         # np.set_printoptions(threshold=np.inf)
         # print(observation.shape)
