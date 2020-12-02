@@ -45,7 +45,8 @@ n_actions = env.action_space.n
 
 player_id = 1
 opponent_id = 3 - player_id
-opponent = wimblepong.SimpleAi(env, opponent_id,bpe = 8)
+opponent = wimblepong.SimpleAi(env, opponent_id,bpe = 10)
+print("Opponent's bpe set to", opponent.bpe)
 
 # Task 4 - DQN
 agent = DQNAgent(frame_stacks, n_actions, gamma, batch_size, replay_buffer_size)
@@ -57,14 +58,15 @@ env.set_names(agent.get_name(), opponent.get_name())
 #FROM EXERCISE 4
 cumulative_rewards = []
 total_frames = 0
+ep_reset = 0
 for ep in range(num_episodes):
     # Initialize the environment and state
     state,state1 = env.reset()
     # PRE PROCESS THE STATE
     state = agent._preprocess(state)
     done = False
-    if ep < 25000:
-        eps = glie_a/(glie_a+ep)
+    if (ep-ep_reset) < 25000:
+        eps = glie_a/(glie_a+(ep-ep_reset))
         # eps=0.05
     else:
         eps = 0.1
@@ -111,6 +113,7 @@ for ep in range(num_episodes):
         logging.info("Mean frame rate: %r",total_frames/(ep+1))
         logging.info("trained for: %s episodes", ep)
         logging.info("victory rate: %r", wins/(ep+1))
+        logging.info("Epsilon: %r", eps)
 
     # Save the policy
     # Uncomment for Task 4
@@ -118,7 +121,9 @@ for ep in range(num_episodes):
         logging.info("saving model at ep: %s", ep)
         torch.save(agent.policy_net.state_dict(), "weights_%s_%d.mdl" % ("DQN", ep))
 
-    if ep % 4000 == 0 and opponent.bpe > 2:
+    if (ep+1) % 15000 == 0 and opponent.bpe > 2:
         opponent = wimblepong.SimpleAi(env, opponent_id,opponent.bpe-1)
+        print("Changed opponent's bpe to", opponent.bpe)
+        ep_reset = ep # for resetting epsilon calculation (glie)
 
 print('Complete')

@@ -6,6 +6,7 @@ from torch.distributions import Normal
 import numpy as np
 import random
 from utilis import Transition, ReplayMemory
+from matplotlib import pyplot as plt
 
 # https://pytorch.org/tutorials/intermediate/reinforcement_q_learning.html This was bad
 # This is good: https://ai.stackexchange.com/questions/10203/dqn-stuck-at-suboptimal-policy-in-atari-pong-task
@@ -22,7 +23,7 @@ class DQN(nn.Module):
                                      stride=4)
         self.conv2 = torch.nn.Conv2d(32, 64, 4, 2)
         self.conv3 = torch.nn.Conv2d(64, 64, 3, 1)
-        self.reshaped_size = 64 * 9 * 9
+        self.reshaped_size = 64 * 1 * 1
         self.fc1 = torch.nn.Linear(self.reshaped_size, self.hidden)
         self.head = torch.nn.Linear(self.hidden, outputs)
 
@@ -145,7 +146,12 @@ class newai(object):
     def _preprocess(self, observation):
 
         observation = np.mean(observation, axis=2).astype(np.uint8)  # convert to greyscale
-        observation = observation[::2, ::2]
+        observation = observation[::5, ::5] # Ball is 5 pixels -> quaranteed 1 pixel
+        # observation = observation[2:-3, 2:-3] # Remove first 2 columns and Right 3 columns
+        # np.set_printoptions(threshold=np.inf)
+        # print(observation.shape)
+        # plt.imshow(observation)
+        # plt.show()
         observation = np.expand_dims(observation, axis=0)
 
         if self.prev_obs is None:
