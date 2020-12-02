@@ -25,8 +25,8 @@ logging.basicConfig(level=logging.INFO, filename='dqn.log', filemode='w', format
 logging.info("log file for DQN agent training")
 
 # Make the environment
-# env_name = "WimblepongVisualSimpleAI-v0"
-env_name = "CartPole-v0"
+env_name = "WimblepongVisualSimpleAI-v0"
+# env_name = "CartPole-v0"
 env = gym.make(env_name)
 
 if "CartPole" in env_name:
