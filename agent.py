@@ -135,9 +135,11 @@ class Agent(object):
         state = torch.from_numpy(state).float()
         self.memory.push(state, action, next_state, reward, done)
 
-    def load_model(self,fpath="model.mdl"):
-        #Pass filename as argument to load desired model
-        return torch.load(fpath)
+    def load_model(self, fpath="model.mdl"):
+        # Pass filename as argument to load desired model
+        weights = torch.load(fpath)
+        self.policy_net.load_state_dict(weights)
+        return weights
 
     def reset(self):
         return
