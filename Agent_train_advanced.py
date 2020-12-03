@@ -9,7 +9,7 @@ import sys
 import os
 import argparse
 import random
-from agent import newai as DQNAgent
+from agent import Agent as DQNAgent
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--load", action="store_true",
@@ -28,13 +28,15 @@ logging.info("log file for DQN agent training")
 env = gym.make("WimblepongVisualMultiplayer-v0")
 
 TARGET_UPDATE = 25
-glie_a = 5000
 num_episodes = 50000
+target_eps = 0.1
+glie_a = int(target_eps * num_episodes // (1-target_eps))
 hidden = 64
 gamma = 0.99
 replay_buffer_size = 50000
 batch_size = 32
 frame_stacks = 3
+learning_rate = 2.5e-4
 
 
 wins = 0
@@ -49,7 +51,7 @@ opponent = wimblepong.SimpleAi(env, opponent_id,bpe = 10)
 print("Opponent's bpe set to", opponent.bpe)
 
 # Task 4 - DQN
-agent = DQNAgent(frame_stacks, n_actions, gamma, batch_size, replay_buffer_size)
+agent = DQNAgent(frame_stacks, n_actions, gamma, batch_size, replay_buffer_size, learning_rate)
 if args.load:
     agent.policy_net.load_state_dict(agent.load_model(args.file))
 
@@ -58,18 +60,18 @@ env.set_names(agent.get_name(), opponent.get_name())
 #FROM EXERCISE 4
 cumulative_rewards = []
 total_frames = 0
-ep_reset = 0
 for ep in range(num_episodes):
     # Initialize the environment and state
     state,state1 = env.reset()
-    # PRE PROCESS THE STATE
+    # PREPROCESS THE STATE
     state = agent._preprocess(state)
     done = False
-    if (ep-ep_reset) < 25000:
-        eps = glie_a/(glie_a+(ep-ep_reset))
-        # eps=0.05
-    else:
-        eps = 0.1
+    eps = glie_a/(glie_a+ep)
+    # if ep < 50000:
+    #     eps = glie_a/(glie_a+ep)
+    #     # eps=0.05
+    # else:
+    #     eps = 0.1
     cum_reward = 0
 
     i = 0
@@ -121,9 +123,8 @@ for ep in range(num_episodes):
         logging.info("saving model at ep: %s", ep)
         torch.save(agent.policy_net.state_dict(), "weights_%s_%d.mdl" % ("DQN", ep))
 
-    if (ep+1) % 15000 == 0 and opponent.bpe > 2:
+    if (ep+1) % 8000 == 0 and opponent.bpe > 2:
         opponent = wimblepong.SimpleAi(env, opponent_id,opponent.bpe-1)
         print("Changed opponent's bpe to", opponent.bpe)
-        ep_reset = ep # for resetting epsilon calculation (glie)
 
 print('Complete')

@@ -42,14 +42,14 @@ class DQN(nn.Module):
 
 #Agent from exercise 4
 class Agent(object):
-    def __init__(self, frame_stacks=3, n_actions=3, gamma=0.98, batch_size=32, replay_buffer_size=50000):
+    def __init__(self, frame_stacks=3, n_actions=3, gamma=0.98, batch_size=32, replay_buffer_size=50000, learning_rate=1e-4):
         self.train_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print("train_device is:",self.train_device)
         self.policy_net = DQN(frame_stacks, n_actions).to(device=self.train_device)
         self.target_net = DQN(frame_stacks, n_actions).to(device=self.train_device)
         self.target_net.load_state_dict(self.policy_net.state_dict())
         self.target_net.eval()
-        self.optimizer = optim.RMSprop(self.policy_net.parameters(), lr=1e-3)
+        self.optimizer = optim.RMSprop(self.policy_net.parameters(), lr=learning_rate)
         self.gamma = gamma
         self.states = []
         self.memory = ReplayMemory(replay_buffer_size)
