@@ -41,15 +41,15 @@ class DQN(nn.Module):
         return self.head(x)
 
 #Agent from exercise 4
-class newai(object):
-    def __init__(self, frame_stacks, n_actions, gamma, batch_size, replay_buffer_size):
+class Agent(object):
+    def __init__(self, frame_stacks=3, n_actions=3, gamma=0.98, batch_size=32, replay_buffer_size=50000, learning_rate=1e-4):
         self.train_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print("train_device is:",self.train_device)
         self.policy_net = DQN(frame_stacks, n_actions).to(device=self.train_device)
         self.target_net = DQN(frame_stacks, n_actions).to(device=self.train_device)
         self.target_net.load_state_dict(self.policy_net.state_dict())
         self.target_net.eval()
-        self.optimizer = optim.RMSprop(self.policy_net.parameters(), lr=1e-3)
+        self.optimizer = optim.RMSprop(self.policy_net.parameters(), lr=learning_rate)
         self.gamma = gamma
         self.states = []
         self.memory = ReplayMemory(replay_buffer_size)
@@ -135,9 +135,14 @@ class newai(object):
         state = torch.from_numpy(state).float()
         self.memory.push(state, action, next_state, reward, done)
 
-    def load_model(self,fpath):
-        #Pass filename as argument to load desired model
-        return torch.load(fpath)
+    def load_model(self, fpath="model.mdl"):
+        # Pass filename as argument to load desired model
+        weights = torch.load(fpath)
+        self.policy_net.load_state_dict(weights)
+        return weights
+
+    def reset(self):
+        return
 
     def get_name(self):
         return self.agent_name
@@ -147,9 +152,7 @@ class newai(object):
 
         observation = np.mean(observation, axis=2).astype(np.uint8)  # convert to greyscale
         observation = observation[::5, ::5] # Ball is 5 pixels -> quaranteed 1 pixel
-        observation = observation[::1, :-2]
-        observation = observation[::1, 2:]
-        # observation = observation[2:-3, 2:-3] # Remove first 2 columns and Right 3 columns
+        observation = observation[:, 2:-2] # Remove first 2 columns and Right 3 columns
         # np.set_printoptions(threshold=np.inf)
         # print(observation.shape)
         # plt.imshow(observation)
