@@ -41,14 +41,14 @@ if "CartPole" in env_name:
     height = 400
     width = 600
 elif "WimblepongVisualSimpleAI" in env_name:
-    TARGET_UPDATE = 30
-    glie_a = 5000
-    num_episodes = 50000
+    TARGET_UPDATE = 25
+    glie_a = 5700
+    num_episodes = 100000
     hidden = 64
     gamma = 0.99
     replay_buffer_size = 50000
     batch_size = 32
-    frame_stacks = 2
+    frame_stacks = 3
     height = 100
     width = 100
 else:
@@ -70,6 +70,7 @@ if args.load:
 # Training loop
 #FROM EXERCISE 4
 cumulative_rewards = []
+total_frames=0
 for ep in range(num_episodes):
     # Initialize the environment and state
     state = env.reset()
@@ -81,10 +82,7 @@ for ep in range(num_episodes):
     state = agent._preprocess(state)
 
     done = False
-    if ep < 25000:
-    	eps = glie_a/(glie_a+ep)
-    else:
-    	eps = 0.01
+    eps = glie_a/(glie_a+ep)
     cum_reward = 0
 
     i = 0
@@ -112,9 +110,10 @@ for ep in range(num_episodes):
                 wins += 1
 
         i += 1
+    total_frames+=i
     cumulative_rewards.append(cum_reward)
     #plot_rewards(cumulative_rewards)
-    logging.info("Episode lasted for %i time steps", i)
+    logging.info("Episode lasted for %i time steps - %s", i, "W" if cum_reward > 0 else "L")
 
 
     # Update the target network, copying all weights and biases in DQN
@@ -123,6 +122,7 @@ for ep in range(num_episodes):
         agent.update_target_network()
 
     if ep % 10 == 0:
+        logging.info("Mean frame rate: %r",total_frames/(ep+1))
         logging.info("trained for: %s episodes", ep)
         logging.info("victory rate: %r", wins/(ep+1))
         logging.info("Won total: %s",wins)
