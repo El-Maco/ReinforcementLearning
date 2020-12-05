@@ -45,11 +45,11 @@ class DQN(nn.Module):
 
 # Agent from exercise 4
 class Agent(object):
-    def __init__(self, n_actions, frame_stacks, gamma, batch_size, replay_buffer_size):
+    def __init__(self, n_actions = 3, frame_stacks = 3, gamma = 99, batch_size = 32, replay_buffer_size = 50000):
         self.train_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print("train_device is:", self.train_device)
         self.policy_net = DQN(n_actions,frame_stacks).to(device=self.train_device)
-        self.target_net = DQN(100, 100, 2).to(device=self.train_device)
+        self.target_net = DQN(n_actions,frame_stacks).to(device=self.train_device)
         self.target_net.load_state_dict(self.policy_net.state_dict())
         self.target_net.eval()
         self.optimizer = optim.RMSprop(self.policy_net.parameters(), lr=1e-4, eps=1e-2, momentum=0.0)
@@ -138,9 +138,11 @@ class Agent(object):
         state = torch.from_numpy(state).float()
         self.memory.push(state, action, next_state, reward, done)
 
-    def load_model(self, fpath):
+    def load_model(self, fpath = 'model.mdl'):
         # Pass filename as argument to load desired model
-        return torch.load(fpath)
+        file = torch.load(fpath)
+        self.policy_net.load_state_dict(self.load_model(file))
+        return file
 
     def get_name(self):
         return self.name
