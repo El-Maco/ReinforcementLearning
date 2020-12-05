@@ -13,7 +13,7 @@ import torch.nn.functional as F
 from torch.distributions import Normal
 import numpy as np
 import random
-from Todo_utilis import Transition, ReplayMemory
+from todo_utils import Transition, ReplayMemory
 
 
 # https://pytorch.org/tutorials/intermediate/reinforcement_q_learning.html
