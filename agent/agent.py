@@ -141,11 +141,11 @@ class Agent(object):
     def load_model(self, fpath = 'model.mdl'):
         # Pass filename as argument to load desired model
         file = torch.load(fpath)
-        self.policy_net.load_state_dict(self.load_model(file))
+        self.policy_net.load_state_dict(file)
         return file
 
     def get_name(self):
-        return self.name
+        return self.agent_name
 
     def reset(self):
         return

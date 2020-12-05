@@ -3,7 +3,7 @@ import random
 
 
 class SimpleAi(object):
-    def __init__(self, env, player_id=1, bpe=8):
+    def __init__(self, env, player_id=1, bpe=4):
         if type(env) is not Wimblepong:
             raise TypeError("I'm not a very smart AI. All I can play is Wimblepong.")
         self.env = env

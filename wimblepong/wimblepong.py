@@ -220,7 +220,7 @@ class Wimblepong(gym.core.Env):
         self.SCOREBOARD_BORDER = 4
         self.SEPARATOR_BORDER = 3
 
-        self.scale = 3                                  # Scale of the game window
+        self.scale = 5                                  # Scale of the game window
         self.fps = 30                                   # Rendering frames per second
 
         # Cache the background to make it faster
