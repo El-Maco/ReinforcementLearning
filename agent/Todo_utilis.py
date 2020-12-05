@@ -1,3 +1,10 @@
+
+####################################################################
+############ ELEC-E8125 - Reinforcement learning D #################
+### This project is created by Robin Nyman and Marcus Myllyviita ###
+####################################################################
+
+
 from collections import namedtuple
 import random
 
